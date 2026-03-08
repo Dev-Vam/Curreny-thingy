@@ -1,4 +1,4 @@
-// ===== Simple Mobile Converter =====
+// ===== Pro Mobile Converter =====
 const app = {
     // API
     apiKey: '38b44d9fd2765204c0abd06e',
@@ -6,19 +6,75 @@ const app = {
     
     // Time units (in seconds)
     timeUnits: {
+        nanoseconds: 1e-9,
+        microseconds: 1e-6,
+        milliseconds: 0.001,
         seconds: 1,
         minutes: 60,
         hours: 3600,
         days: 86400,
         weeks: 604800,
         months: 2592000,
-        years: 31536000
+        years: 31536000,
+        decades: 315360000,
+        centuries: 3153600000
     },
     
-    // Currencies with flags
+    // Length units (in meters)
+    lengthUnits: {
+        mm: 0.001,
+        cm: 0.01,
+        m: 1,
+        km: 1000,
+        in: 0.0254,
+        ft: 0.3048,
+        yd: 0.9144,
+        mi: 1609.344,
+        nmi: 1852,
+        ly: 9.461e15,
+        au: 1.496e11
+    },
+    
+    // Weight units (in kg)
+    weightUnits: {
+        mg: 0.000001,
+        g: 0.001,
+        kg: 1,
+        t: 1000,
+        oz: 0.0283495,
+        lb: 0.453592,
+        st: 6.35029,
+        lt: 1016.05,
+        ct: 0.0002,
+        earth: 5.972e24,
+        sun: 1.989e30
+    },
+    
+    // All currencies with flags (25+ currencies)
     currencies: {
         USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵',
-        CAD: '🇨🇦', AUD: '🇦🇺', CNY: '🇨🇳', INR: '🇮🇳'
+        CAD: '🇨🇦', AUD: '🇦🇺', CHF: '🇨🇭', CNY: '🇨🇳',
+        INR: '🇮🇳', ZAR: '🇿🇦', BRL: '🇧🇷', MXN: '🇲🇽',
+        SGD: '🇸🇬', NZD: '🇳🇿', HKD: '🇭🇰', SEK: '🇸🇪',
+        NOK: '🇳🇴', DKK: '🇩🇰', PLN: '🇵🇱', TRY: '🇹🇷',
+        RUB: '🇷🇺', KRW: '🇰🇷', AED: '🇦🇪', SAR: '🇸🇦',
+        THB: '🇹🇭'
+    },
+    
+    // Currency names for display
+    currencyNames: {
+        USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound',
+        JPY: 'Japanese Yen', CAD: 'Canadian Dollar',
+        AUD: 'Australian Dollar', CHF: 'Swiss Franc',
+        CNY: 'Chinese Yuan', INR: 'Indian Rupee',
+        ZAR: 'South African Rand', BRL: 'Brazilian Real',
+        MXN: 'Mexican Peso', SGD: 'Singapore Dollar',
+        NZD: 'New Zealand Dollar', HKD: 'Hong Kong Dollar',
+        SEK: 'Swedish Krona', NOK: 'Norwegian Krone',
+        DKK: 'Danish Krone', PLN: 'Polish Złoty',
+        TRY: 'Turkish Lira', RUB: 'Russian Ruble',
+        KRW: 'South Korean Won', AED: 'UAE Dirham',
+        SAR: 'Saudi Riyal', THB: 'Thai Baht'
     },
     
     // Exchange rates cache
@@ -34,7 +90,10 @@ const app = {
         this.loadData();
         this.setupListeners();
         this.updateTime();
+        this.updateLength();
+        this.updateWeight();
         this.fetchRates();
+        this.setupPresets();
         
         // Set theme
         const theme = localStorage.getItem('theme') || 'light';
@@ -45,12 +104,21 @@ const app = {
     // ===== LOAD SAVED DATA =====
     loadData: function() {
         // Load history
-        const saved = localStorage.getItem('history');
-        if (saved) this.history = JSON.parse(saved);
+        const saved = localStorage.getItem('proHistory');
+        if (saved) {
+            this.history = JSON.parse(saved);
+            this.updateHistory();
+        }
+        
+        // Load favorites
+        const favorites = localStorage.getItem('favoritePairs');
+        if (favorites) {
+            // Could restore favorite pairs
+        }
         
         // Load cached rates
-        const cached = localStorage.getItem('rates');
-        const timestamp = localStorage.getItem('ratesTime');
+        const cached = localStorage.getItem('proRates');
+        const timestamp = localStorage.getItem('proRatesTime');
         
         if (cached && timestamp) {
             const age = Date.now() - parseInt(timestamp);
@@ -86,8 +154,31 @@ const app = {
         document.getElementById('moneySwap').onclick = () => this.swapMoney();
         document.getElementById('refreshRates').onclick = () => this.fetchRates();
         
+        // Length
+        document.getElementById('lengthInput').oninput = () => this.updateLength();
+        document.getElementById('lengthFrom').onchange = () => this.updateLength();
+        document.getElementById('lengthTo').onchange = () => this.updateLength();
+        document.getElementById('lengthSwap').onclick = () => this.swapLength();
+        
+        // Weight
+        document.getElementById('weightInput').oninput = () => this.updateWeight();
+        document.getElementById('weightFrom').onchange = () => this.updateWeight();
+        document.getElementById('weightTo').onchange = () => this.updateWeight();
+        document.getElementById('weightSwap').onclick = () => this.swapWeight();
+        
         // History
         document.getElementById('clearHistory').onclick = () => this.clearHistory();
+        document.getElementById('exportHistory').onclick = () => this.exportHistory();
+        
+        // Favorite pairs
+        document.querySelectorAll('.fav-btn').forEach(btn => {
+            btn.onclick = () => {
+                const [from, to] = btn.dataset.pair.split(',');
+                document.getElementById('moneyFrom').value = from;
+                document.getElementById('moneyTo').value = to;
+                this.updateMoneyUI();
+            };
+        });
     },
 
     // ===== TAB SWITCHING =====
@@ -120,16 +211,16 @@ const app = {
         const seconds = input * this.timeUnits[from];
         const result = seconds / this.timeUnits[to];
         
-        document.getElementById('timeOutput').value = result.toFixed(4);
+        document.getElementById('timeOutput').value = this.formatDecimal(result);
         
         // Update comparisons
-        this.updateComparisons(seconds);
+        this.updateTimeComparisons(seconds);
         
         // Save to history
-        this.addToHistory('time', `${input} ${from} → ${result.toFixed(2)} ${to}`);
+        this.addToHistory('time', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
     },
 
-    updateComparisons: function(seconds) {
+    updateTimeComparisons: function(seconds) {
         // CPU cycles (3GHz)
         document.getElementById('cpuCycles').textContent = this.formatNumber(seconds * 3e9);
         
@@ -142,22 +233,76 @@ const app = {
         // Lifespan (79 years)
         const lifespan = 79 * 365 * 24 * 3600;
         document.getElementById('lifespan').textContent = ((seconds / lifespan) * 100).toFixed(4) + '%';
+        
+        // Earth rotations
+        document.getElementById('earthRotations').textContent = (seconds / 86164).toFixed(4);
+        
+        // Light seconds
+        document.getElementById('lightSeconds').textContent = (seconds / 299792458).toFixed(8);
     },
 
-    formatNumber: function(n) {
-        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
-        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-        return Math.round(n).toString();
+    // ===== LENGTH CONVERSION =====
+    updateLength: function() {
+        const input = parseFloat(document.getElementById('lengthInput').value) || 0;
+        const from = document.getElementById('lengthFrom').value;
+        const to = document.getElementById('lengthTo').value;
+        
+        const meters = input * this.lengthUnits[from];
+        const result = meters / this.lengthUnits[to];
+        
+        document.getElementById('lengthOutput').value = this.formatDecimal(result);
+        
+        // Update comparisons
+        this.updateLengthComparisons(meters);
+        
+        // Save to history
+        this.addToHistory('length', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
     },
 
-    swapTime: function() {
-        const from = document.getElementById('timeFrom');
-        const to = document.getElementById('timeTo');
-        const temp = from.value;
-        from.value = to.value;
-        to.value = temp;
-        this.updateTime();
+    updateLengthComparisons: function(meters) {
+        // Football fields (100m)
+        document.getElementById('footballFields').textContent = (meters / 100).toFixed(2);
+        
+        // Empire State Building (443m)
+        document.getElementById('empireState').textContent = (meters / 443).toFixed(2);
+        
+        // Boeing 747 (70m)
+        document.getElementById('planeLength').textContent = (meters / 70).toFixed(2);
+        
+        // Earth circumference (40,075,000m)
+        document.getElementById('earthCirc').textContent = (meters / 40075000 * 100).toFixed(6) + '%';
+    },
+
+    // ===== WEIGHT CONVERSION =====
+    updateWeight: function() {
+        const input = parseFloat(document.getElementById('weightInput').value) || 0;
+        const from = document.getElementById('weightFrom').value;
+        const to = document.getElementById('weightTo').value;
+        
+        const kg = input * this.weightUnits[from];
+        const result = kg / this.weightUnits[to];
+        
+        document.getElementById('weightOutput').value = this.formatDecimal(result);
+        
+        // Update comparisons
+        this.updateWeightComparisons(kg);
+        
+        // Save to history
+        this.addToHistory('weight', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
+    },
+
+    updateWeightComparisons: function(kg) {
+        // Apples (0.2kg)
+        document.getElementById('apples').textContent = this.formatNumber(kg / 0.2);
+        
+        // Olympic bar (20kg)
+        document.getElementById('olympicBar').textContent = (kg / 20).toFixed(1);
+        
+        // Elephant (5000kg)
+        document.getElementById('elephants').textContent = (kg / 5000).toFixed(2);
+        
+        // Car (1500kg)
+        document.getElementById('cars').textContent = (kg / 1500).toFixed(2);
     },
 
     // ===== MONEY CONVERSION =====
@@ -175,8 +320,8 @@ const app = {
                 this.callsLeft = data.rate_limit?.remaining || 1499;
                 
                 // Cache
-                localStorage.setItem('rates', JSON.stringify(this.rates));
-                localStorage.setItem('ratesTime', Date.now().toString());
+                localStorage.setItem('proRates', JSON.stringify(this.rates));
+                localStorage.setItem('proRatesTime', Date.now().toString());
                 
                 this.updateMoneyUI();
                 this.showToast('Rates updated!');
@@ -200,16 +345,39 @@ const app = {
             const inUSD = input / this.rates[from];
             const result = inUSD * this.rates[to];
             
-            document.getElementById('moneyOutput').value = result.toFixed(2);
+            document.getElementById('moneyOutput').value = result.toFixed(4);
             
             // Update rate display
             const rate = this.rates[to] / this.rates[from];
             document.getElementById('exchangeRate').textContent = 
                 `1 ${from} = ${rate.toFixed(4)} ${to}`;
             
+            // Update purchasing power
+            this.updatePurchasingPower(input, from, result, to);
+            
             // Save to history
             this.addToHistory('money', `${input} ${from} → ${result.toFixed(2)} ${to}`);
         }
+    },
+
+    updatePurchasingPower: function(amount, from, result, to) {
+        const powerText = document.getElementById('powerText');
+        
+        // Common items in local currency
+        const items = {
+            USD: { coffee: 4.50, bread: 3.00, meal: 15.00 },
+            EUR: { coffee: 3.50, bread: 2.50, meal: 12.00 },
+            GBP: { coffee: 3.00, bread: 2.00, meal: 10.00 },
+            ZAR: { coffee: 35, bread: 18, meal: 120 }
+        };
+        
+        const fromItems = items[from] || items.USD;
+        const toItems = items[to] || items.USD;
+        
+        powerText.innerHTML = `
+            In ${from}: ${amount} buys ${(amount / fromItems.coffee).toFixed(1)} coffees<br>
+            In ${to}: ${result.toFixed(2)} buys ${(result / toItems.coffee).toFixed(1)} coffees
+        `;
     },
 
     updateMoneyUI: function() {
@@ -225,7 +393,7 @@ const app = {
 
     updatePopularRates: function() {
         const list = document.getElementById('popularList');
-        const popular = ['EUR', 'GBP', 'JPY', 'CAD'];
+        const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CNY', 'ZAR'];
         const from = document.getElementById('moneyFrom').value;
         
         let html = '';
@@ -259,22 +427,80 @@ const app = {
         this.updateMoneyUI();
     },
 
+    swapTime: function() {
+        const from = document.getElementById('timeFrom');
+        const to = document.getElementById('timeTo');
+        const temp = from.value;
+        from.value = to.value;
+        to.value = temp;
+        this.updateTime();
+    },
+
+    swapLength: function() {
+        const from = document.getElementById('lengthFrom');
+        const to = document.getElementById('lengthTo');
+        const temp = from.value;
+        from.value = to.value;
+        to.value = temp;
+        this.updateLength();
+    },
+
+    swapWeight: function() {
+        const from = document.getElementById('weightFrom');
+        const to = document.getElementById('weightTo');
+        const temp = from.value;
+        from.value = to.value;
+        to.value = temp;
+        this.updateWeight();
+    },
+
+    // ===== PRESETS =====
+    setupPresets: function() {
+        // Time presets
+        document.querySelectorAll('[data-time]').forEach(btn => {
+            btn.onclick = () => {
+                document.getElementById('timeInput').value = btn.dataset.time;
+                this.updateTime();
+            };
+        });
+        
+        // Length presets
+        document.querySelectorAll('[data-length]').forEach(btn => {
+            btn.onclick = () => {
+                document.getElementById('lengthInput').value = btn.dataset.length;
+                this.updateLength();
+            };
+        });
+        
+        // Weight presets
+        document.querySelectorAll('[data-weight]').forEach(btn => {
+            btn.onclick = () => {
+                document.getElementById('weightInput').value = btn.dataset.weight;
+                this.updateWeight();
+            };
+        });
+    },
+
     // ===== HISTORY =====
     addToHistory: function(type, text) {
         this.history.unshift({
             type,
             text,
-            time: new Date().toLocaleTimeString()
+            time: new Date().toLocaleTimeString(),
+            date: new Date().toLocaleDateString()
         });
         
-        if (this.history.length > 20) this.history.pop();
+        if (this.history.length > 30) this.history.pop();
         
-        localStorage.setItem('history', JSON.stringify(this.history));
+        localStorage.setItem('proHistory', JSON.stringify(this.history));
         this.updateHistory();
     },
 
     updateHistory: function() {
         const list = document.getElementById('historyList');
+        const stats = document.getElementById('historyStats');
+        
+        stats.textContent = `Total: ${this.history.length} conversions`;
         
         if (this.history.length === 0) {
             list.innerHTML = `
@@ -288,9 +514,16 @@ const app = {
         
         let html = '';
         this.history.forEach(item => {
+            const icon = {
+                time: 'fa-clock',
+                money: 'fa-coins',
+                length: 'fa-ruler',
+                weight: 'fa-weight-scale'
+            }[item.type] || 'fa-exchange-alt';
+            
             html += `
                 <div class="history-item">
-                    <i class="fas fa-${item.type === 'time' ? 'clock' : 'coins'}"></i>
+                    <i class="fas ${icon}"></i>
                     <div class="conversion">${item.text}</div>
                     <div class="time">${item.time}</div>
                 </div>
@@ -302,12 +535,39 @@ const app = {
 
     clearHistory: function() {
         this.history = [];
-        localStorage.removeItem('history');
+        localStorage.removeItem('proHistory');
         this.updateHistory();
         this.showToast('History cleared');
     },
 
+    exportHistory: function() {
+        const data = JSON.stringify(this.history, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `converter-history-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        this.showToast('History exported');
+    },
+
     // ===== UI HELPERS =====
+    formatNumber: function(n) {
+        if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
+        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return Math.round(n).toString();
+    },
+
+    formatDecimal: function(n) {
+        if (n > 1e6 || n < 1e-6) return n.toExponential(4);
+        return n.toFixed(6);
+    },
+
     showToast: function(msg, type = 'success') {
         const toast = document.getElementById('toast');
         toast.textContent = msg;
@@ -320,6 +580,8 @@ const app = {
 
     showStatus: function(text) {
         document.getElementById('statusText').textContent = text;
+        document.getElementById('statusDot').style.background = 
+            text.includes('Live') ? 'var(--success)' : 'var(--warning)';
     }
 };
 
