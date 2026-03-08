@@ -3,259 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>⚡ Ultra Converter • Mobile</title>
+    <title>⚡ Simple Converter</title>
     
-    <!-- Fonts & Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Simple icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- PWA Support -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-    <!-- Install App Banner -->
-    <div class="install-banner" id="installBanner">
-        <div class="banner-content">
-            <i class="fas fa-download"></i>
-            <span>Install app for better experience</span>
-            <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none'">
-                <i class="fas fa-times"></i>
-            </button>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <i class="fas fa-exchange-alt"></i>
+            <h1>Simple Converter</h1>
+            <button class="theme-btn" id="themeToggle">🌙</button>
+        </div>
+        <div class="status-bar" id="statusBar">
+            <span id="statusText">✅ Live rates</span>
+            <span id="rateInfo">1500 calls left</span>
         </div>
     </div>
 
-    <!-- Main App Container -->
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-top">
-                <div class="logo">
-                    <i class="fas fa-bolt"></i>
-                    <h1>Ultra Converter</h1>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-tab="time">⏱️ Time</button>
+        <button class="tab" data-tab="money">💰 Money</button>
+        <button class="tab" data-tab="history">📋 History</button>
+    </div>
+
+    <!-- Time Tab -->
+    <div class="tab-content active" id="timeTab">
+        <div class="card">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>From</label>
+                    <div class="input-box">
+                        <input type="number" id="timeInput" value="1">
+                        <select id="timeFrom">
+                            <option value="seconds">Seconds</option>
+                            <option value="minutes">Minutes</option>
+                            <option value="hours" selected>Hours</option>
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                            <option value="months">Months</option>
+                            <option value="years">Years</option>
+                        </select>
+                    </div>
                 </div>
-                <button class="theme-toggle" id="themeToggle">
-                    <i class="fas fa-moon"></i>
+                
+                <button class="swap-btn" id="timeSwap">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                
+                <div class="input-group">
+                    <label>To</label>
+                    <div class="input-box">
+                        <input type="number" id="timeOutput" readonly>
+                        <select id="timeTo">
+                            <option value="seconds">Seconds</option>
+                            <option value="minutes" selected>Minutes</option>
+                            <option value="hours">Hours</option>
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                            <option value="months">Months</option>
+                            <option value="years">Years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-info">
+                <div class="info-item">
+                    <span class="info-label">CPU Cycles</span>
+                    <span class="info-value" id="cpuCycles">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Heartbeats</span>
+                    <span class="info-value" id="heartbeats">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Movies</span>
+                    <span class="info-value" id="movies">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Lifespan</span>
+                    <span class="info-value" id="lifespan">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Money Tab -->
+    <div class="tab-content" id="moneyTab">
+        <div class="card">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>From</label>
+                    <div class="currency-box">
+                        <span class="flag" id="fromFlag">🇺🇸</span>
+                        <input type="number" id="moneyInput" value="100">
+                        <select id="moneyFrom" class="currency-select">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="JPY">JPY</option>
+                            <option value="CAD">CAD</option>
+                            <option value="AUD">AUD</option>
+                            <option value="CNY">CNY</option>
+                            <option value="INR">INR</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="swap-btn" id="moneySwap">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                
+                <div class="input-group">
+                    <label>To</label>
+                    <div class="currency-box">
+                        <span class="flag" id="toFlag">🇪🇺</span>
+                        <input type="number" id="moneyOutput" readonly>
+                        <select id="moneyTo" class="currency-select">
+                            <option value="USD">USD</option>
+                            <option value="EUR" selected>EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="JPY">JPY</option>
+                            <option value="CAD">CAD</option>
+                            <option value="AUD">AUD</option>
+                            <option value="CNY">CNY</option>
+                            <option value="INR">INR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rate-box">
+                <div class="rate" id="exchangeRate">1 USD = 0.85 EUR</div>
+                <button class="refresh-btn" id="refreshRates">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
-            <div class="connection-status">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Live rates</span>
-                <span class="api-calls" id="apiCalls">1500 calls left</span>
-            </div>
-        </header>
 
-        <!-- Tab Navigation -->
-        <div class="tab-bar">
-            <button class="tab-btn active" data-tab="time">
-                <i class="fas fa-clock"></i>
-                <span>Time</span>
-            </button>
-            <button class="tab-btn" data-tab="currency">
-                <i class="fas fa-coins"></i>
-                <span>Currency</span>
-            </button>
-            <button class="tab-btn" data-tab="history">
-                <i class="fas fa-history"></i>
-                <span>History</span>
-            </button>
+            <div class="popular-list" id="popularList">
+                <!-- Will be filled by JS -->
+            </div>
         </div>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- TIME CONVERTER TAB -->
-            <div class="tab-pane active" id="timeTab">
-                <div class="converter-card">
-                    <!-- Input Section -->
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label>From</label>
-                            <div class="input-wrapper">
-                                <input type="number" id="timeInput" value="1" step="any">
-                                <select id="timeFrom" class="unit-select">
-                                    <option value="seconds">Seconds (s)</option>
-                                    <option value="minutes">Minutes (min)</option>
-                                    <option value="hours" selected>Hours (h)</option>
-                                    <option value="days">Days (d)</option>
-                                    <option value="weeks">Weeks (w)</option>
-                                    <option value="months">Months (mo)</option>
-                                    <option value="years">Years (yr)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button class="swap-btn" id="timeSwap">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
-
-                        <div class="input-group">
-                            <label>To</label>
-                            <div class="input-wrapper">
-                                <input type="number" id="timeOutput" readonly>
-                                <select id="timeTo" class="unit-select">
-                                    <option value="seconds">Seconds (s)</option>
-                                    <option value="minutes" selected>Minutes (min)</option>
-                                    <option value="hours">Hours (h)</option>
-                                    <option value="days">Days (d)</option>
-                                    <option value="weeks">Weeks (w)</option>
-                                    <option value="months">Months (mo)</option>
-                                    <option value="years">Years (yr)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Comparisons -->
-                    <div class="quick-comparisons">
-                        <h3>⚡ Real World</h3>
-                        <div class="comparison-grid">
-                            <div class="comparison-item">
-                                <i class="fas fa-microchip"></i>
-                                <div>
-                                    <span class="label">CPU Cycles</span>
-                                    <span class="value" id="cpuCycles">-</span>
-                                </div>
-                            </div>
-                            <div class="comparison-item">
-                                <i class="fas fa-heartbeat"></i>
-                                <div>
-                                    <span class="label">Heartbeats</span>
-                                    <span class="value" id="heartbeats">-</span>
-                                </div>
-                            </div>
-                            <div class="comparison-item">
-                                <i class="fas fa-film"></i>
-                                <div>
-                                    <span class="label">Movies</span>
-                                    <span class="value" id="movies">-</span>
-                                </div>
-                            </div>
-                            <div class="comparison-item">
-                                <i class="fas fa-leaf"></i>
-                                <div>
-                                    <span class="label">Lifespan %</span>
-                                    <span class="value" id="lifespan">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CURRENCY CONVERTER TAB -->
-            <div class="tab-pane" id="currencyTab">
-                <div class="converter-card">
-                    <!-- Input Section -->
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label>From</label>
-                            <div class="currency-wrapper">
-                                <span class="currency-flag" id="fromFlag">🇺🇸</span>
-                                <div class="currency-input">
-                                    <input type="number" id="currencyInput" value="100" step="any">
-                                    <span class="currency-code" id="fromCode">USD</span>
-                                </div>
-                                <select id="currencyFrom" class="currency-select">
-                                    <option value="USD">🇺🇸 USD</option>
-                                    <option value="EUR">🇪🇺 EUR</option>
-                                    <option value="GBP">🇬🇧 GBP</option>
-                                    <option value="JPY">🇯🇵 JPY</option>
-                                    <option value="CAD">🇨🇦 CAD</option>
-                                    <option value="AUD">🇦🇺 AUD</option>
-                                    <option value="CNY">🇨🇳 CNY</option>
-                                    <option value="INR">🇮🇳 INR</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button class="swap-btn" id="currencySwap">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
-
-                        <div class="input-group">
-                            <label>To</label>
-                            <div class="currency-wrapper">
-                                <span class="currency-flag" id="toFlag">🇪🇺</span>
-                                <div class="currency-input">
-                                    <input type="number" id="currencyOutput" readonly>
-                                    <span class="currency-code" id="toCode">EUR</span>
-                                </div>
-                                <select id="currencyTo" class="currency-select">
-                                    <option value="USD">🇺🇸 USD</option>
-                                    <option value="EUR" selected>🇪🇺 EUR</option>
-                                    <option value="GBP">🇬🇧 GBP</option>
-                                    <option value="JPY">🇯🇵 JPY</option>
-                                    <option value="CAD">🇨🇦 CAD</option>
-                                    <option value="AUD">🇦🇺 AUD</option>
-                                    <option value="CNY">🇨🇳 CNY</option>
-                                    <option value="INR">🇮🇳 INR</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rate Info -->
-                    <div class="rate-card">
-                        <div class="rate-main" id="exchangeRate">1 USD = 0.85 EUR</div>
-                        <div class="rate-footer">
-                            <span id="rateUpdateTime"><i class="far fa-clock"></i> Updated now</span>
-                            <button class="refresh-btn" id="refreshRates">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Popular Currencies -->
-                    <div class="popular-currencies">
-                        <h3>⭐ Popular</h3>
-                        <div class="currency-grid" id="currencyGrid">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- HISTORY TAB -->
-            <div class="tab-pane" id="historyTab">
-                <div class="history-container">
-                    <div class="history-header">
-                        <h3>Recent Conversions</h3>
-                        <button class="clear-btn" id="clearHistory">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="history-list" id="historyList">
-                        <div class="history-empty">
-                            <i class="fas fa-exchange-alt"></i>
-                            <p>No conversions yet</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Bottom Info Bar -->
-        <footer class="footer">
-            <div class="footer-info">
-                <i class="fas fa-database"></i>
-                <span>ExchangeRate-API</span>
-            </div>
-            <div class="footer-info">
-                <i class="fas fa-bolt"></i>
-                <span>v2.0 • Mobile</span>
-            </div>
-        </footer>
     </div>
 
-    <!-- Toast Notifications -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- History Tab -->
+    <div class="tab-content" id="historyTab">
+        <div class="card">
+            <div class="history-header">
+                <h3>Recent Conversions</h3>
+                <button class="clear-btn" id="clearHistory">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No conversions yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Script -->
+    <!-- Footer -->
+    <div class="footer">
+        <span>⚡ v1.0 • Simple & Fast</span>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script src="app.js"></script>
 </body>
 </html>
