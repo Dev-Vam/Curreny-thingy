@@ -1,26 +1,24 @@
-// ===== Pro Mobile Converter =====
+// ===== Pro Mobile Converter with WorldTimeAPI =====
 const app = {
-    // API
-    apiKey: '38b44d9fd2765204c0abd06e',
-    apiUrl: 'https://v6.exchangerate-api.com/v6',
+    // ExchangeRate-API config
+    exchangeApiKey: '38b44d9fd2765204c0abd06e',
+    exchangeApiUrl: 'https://v6.exchangerate-api.com/v6',
     
-    // Time units (in seconds)
+    // WorldTimeAPI (no key needed)
+    worldTimeUrl: 'https://time.now/developer/api',
+    
+    // Time units in seconds (accurate)
     timeUnits: {
-        nanoseconds: 1e-9,
-        microseconds: 1e-6,
-        milliseconds: 0.001,
         seconds: 1,
         minutes: 60,
         hours: 3600,
         days: 86400,
         weeks: 604800,
-        months: 2592000,
-        years: 31536000,
-        decades: 315360000,
-        centuries: 3153600000
+        months: 2629746, // Average Gregorian month
+        years: 31556952  // Average Gregorian year
     },
     
-    // Length units (in meters)
+    // Length units in meters (accurate)
     lengthUnits: {
         mm: 0.001,
         cm: 0.01,
@@ -29,58 +27,42 @@ const app = {
         in: 0.0254,
         ft: 0.3048,
         yd: 0.9144,
-        mi: 1609.344,
-        nmi: 1852,
-        ly: 9.461e15,
-        au: 1.496e11
+        mi: 1609.344
     },
     
-    // Weight units (in kg)
+    // Weight units in kg (accurate)
     weightUnits: {
-        mg: 0.000001,
         g: 0.001,
         kg: 1,
         t: 1000,
-        oz: 0.0283495,
-        lb: 0.453592,
-        st: 6.35029,
-        lt: 1016.05,
-        ct: 0.0002,
-        earth: 5.972e24,
-        sun: 1.989e30
+        oz: 0.028349523125,
+        lb: 0.45359237,
+        st: 6.35029318
     },
     
-    // All currencies with flags (25+ currencies)
+    // Currencies with flags
     currencies: {
         USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵',
         CAD: '🇨🇦', AUD: '🇦🇺', CHF: '🇨🇭', CNY: '🇨🇳',
         INR: '🇮🇳', ZAR: '🇿🇦', BRL: '🇧🇷', MXN: '🇲🇽',
-        SGD: '🇸🇬', NZD: '🇳🇿', HKD: '🇭🇰', SEK: '🇸🇪',
-        NOK: '🇳🇴', DKK: '🇩🇰', PLN: '🇵🇱', TRY: '🇹🇷',
-        RUB: '🇷🇺', KRW: '🇰🇷', AED: '🇦🇪', SAR: '🇸🇦',
-        THB: '🇹🇭'
+        SGD: '🇸🇬', NZD: '🇳🇿'
     },
     
-    // Currency names for display
     currencyNames: {
-        USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound',
-        JPY: 'Japanese Yen', CAD: 'Canadian Dollar',
-        AUD: 'Australian Dollar', CHF: 'Swiss Franc',
-        CNY: 'Chinese Yuan', INR: 'Indian Rupee',
-        ZAR: 'South African Rand', BRL: 'Brazilian Real',
-        MXN: 'Mexican Peso', SGD: 'Singapore Dollar',
-        NZD: 'New Zealand Dollar', HKD: 'Hong Kong Dollar',
-        SEK: 'Swedish Krona', NOK: 'Norwegian Krone',
-        DKK: 'Danish Krone', PLN: 'Polish Złoty',
-        TRY: 'Turkish Lira', RUB: 'Russian Ruble',
-        KRW: 'South Korean Won', AED: 'UAE Dirham',
-        SAR: 'Saudi Riyal', THB: 'Thai Baht'
+        USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', JPY: 'Japanese Yen',
+        CAD: 'Canadian Dollar', AUD: 'Australian Dollar', CHF: 'Swiss Franc',
+        CNY: 'Chinese Yuan', INR: 'Indian Rupee', ZAR: 'South African Rand',
+        BRL: 'Brazilian Real', MXN: 'Mexican Peso', SGD: 'Singapore Dollar',
+        NZD: 'New Zealand Dollar'
     },
     
     // Exchange rates cache
     rates: {},
     lastUpdate: null,
     callsLeft: 1500,
+    
+    // Timezone list cache
+    timezones: [],
     
     // History
     history: [],
@@ -93,36 +75,33 @@ const app = {
         this.updateLength();
         this.updateWeight();
         this.fetchRates();
+        this.fetchLocalTime();
+        this.loadTimezones();
         this.setupPresets();
         
         // Set theme
         const theme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
         document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+        
+        // Attribution footer for WorldTimeAPI
+        console.log('Using World Time API by Time.Now - https://time.now');
     },
 
     // ===== LOAD SAVED DATA =====
     loadData: function() {
-        // Load history
         const saved = localStorage.getItem('proHistory');
         if (saved) {
             this.history = JSON.parse(saved);
             this.updateHistory();
         }
         
-        // Load favorites
-        const favorites = localStorage.getItem('favoritePairs');
-        if (favorites) {
-            // Could restore favorite pairs
-        }
-        
-        // Load cached rates
         const cached = localStorage.getItem('proRates');
         const timestamp = localStorage.getItem('proRatesTime');
         
         if (cached && timestamp) {
             const age = Date.now() - parseInt(timestamp);
-            if (age < 3600000) { // 1 hour
+            if (age < 3600000) {
                 this.rates = JSON.parse(cached);
                 this.lastUpdate = new Date(parseInt(timestamp));
                 this.updateMoney();
@@ -170,6 +149,18 @@ const app = {
         document.getElementById('clearHistory').onclick = () => this.clearHistory();
         document.getElementById('exportHistory').onclick = () => this.exportHistory();
         
+        // World Time
+        document.getElementById('refreshLocation').onclick = () => this.fetchLocalTime();
+        document.getElementById('closeSelected').onclick = () => {
+            document.getElementById('selectedTimeBox').style.display = 'none';
+        };
+        document.getElementById('timezoneSearch').oninput = (e) => this.searchTimezones(e.target.value);
+        
+        // City buttons
+        document.querySelectorAll('.city-btn').forEach(btn => {
+            btn.onclick = () => this.fetchTimezoneTime(btn.dataset.tz);
+        });
+        
         // Favorite pairs
         document.querySelectorAll('.fav-btn').forEach(btn => {
             btn.onclick = () => {
@@ -190,6 +181,11 @@ const app = {
         document.querySelectorAll('.tab-content').forEach(c => {
             c.classList.toggle('active', c.id === tab + 'Tab');
         });
+        
+        // Refresh world time when tab is opened
+        if (tab === 'worldtime') {
+            this.fetchLocalTime();
+        }
     },
 
     // ===== THEME =====
@@ -204,7 +200,12 @@ const app = {
 
     // ===== TIME CONVERSION =====
     updateTime: function() {
-        const input = parseFloat(document.getElementById('timeInput').value) || 0;
+        const input = parseFloat(document.getElementById('timeInput').value);
+        if (isNaN(input)) {
+            document.getElementById('timeOutput').value = '';
+            return;
+        }
+        
         const from = document.getElementById('timeFrom').value;
         const to = document.getElementById('timeTo').value;
         
@@ -213,37 +214,33 @@ const app = {
         
         document.getElementById('timeOutput').value = this.formatDecimal(result);
         
-        // Update comparisons
         this.updateTimeComparisons(seconds);
-        
-        // Save to history
-        this.addToHistory('time', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
+        this.addToHistory('time', `${this.formatNumber(input)} ${from} → ${this.formatDecimal(result)} ${to}`);
     },
 
     updateTimeComparisons: function(seconds) {
-        // CPU cycles (3GHz)
-        document.getElementById('cpuCycles').textContent = this.formatNumber(seconds * 3e9);
+        // Accurate comparisons
+        const cpuCycles = seconds * 3e9;
+        document.getElementById('cpuCycles').textContent = this.formatNumber(cpuCycles);
         
-        // Heartbeats (72 bpm)
-        document.getElementById('heartbeats').textContent = this.formatNumber(seconds * 72 / 60);
+        const heartbeats = seconds * 72 / 60;
+        document.getElementById('heartbeats').textContent = this.formatNumber(heartbeats);
         
-        // Movies (2 hours)
-        document.getElementById('movies').textContent = (seconds / 7200).toFixed(2);
+        const movies = seconds / 7200;
+        document.getElementById('movies').textContent = movies.toFixed(2);
         
-        // Lifespan (79 years)
-        const lifespan = 79 * 365 * 24 * 3600;
-        document.getElementById('lifespan').textContent = ((seconds / lifespan) * 100).toFixed(4) + '%';
-        
-        // Earth rotations
-        document.getElementById('earthRotations').textContent = (seconds / 86164).toFixed(4);
-        
-        // Light seconds
-        document.getElementById('lightSeconds').textContent = (seconds / 299792458).toFixed(8);
+        const lifespanPercent = (seconds / 2491344000) * 100; // 79 years in seconds
+        document.getElementById('lifespan').textContent = lifespanPercent.toFixed(6) + '%';
     },
 
     // ===== LENGTH CONVERSION =====
     updateLength: function() {
-        const input = parseFloat(document.getElementById('lengthInput').value) || 0;
+        const input = parseFloat(document.getElementById('lengthInput').value);
+        if (isNaN(input)) {
+            document.getElementById('lengthOutput').value = '';
+            return;
+        }
+        
         const from = document.getElementById('lengthFrom').value;
         const to = document.getElementById('lengthTo').value;
         
@@ -252,30 +249,27 @@ const app = {
         
         document.getElementById('lengthOutput').value = this.formatDecimal(result);
         
-        // Update comparisons
         this.updateLengthComparisons(meters);
-        
-        // Save to history
-        this.addToHistory('length', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
+        this.addToHistory('length', `${this.formatNumber(input)} ${from} → ${this.formatDecimal(result)} ${to}`);
     },
 
     updateLengthComparisons: function(meters) {
-        // Football fields (100m)
         document.getElementById('footballFields').textContent = (meters / 100).toFixed(2);
-        
-        // Empire State Building (443m)
         document.getElementById('empireState').textContent = (meters / 443).toFixed(2);
-        
-        // Boeing 747 (70m)
         document.getElementById('planeLength').textContent = (meters / 70).toFixed(2);
         
-        // Earth circumference (40,075,000m)
-        document.getElementById('earthCirc').textContent = (meters / 40075000 * 100).toFixed(6) + '%';
+        const earthPercent = (meters / 40075000) * 100;
+        document.getElementById('earthCirc').textContent = earthPercent.toFixed(6) + '%';
     },
 
     // ===== WEIGHT CONVERSION =====
     updateWeight: function() {
-        const input = parseFloat(document.getElementById('weightInput').value) || 0;
+        const input = parseFloat(document.getElementById('weightInput').value);
+        if (isNaN(input)) {
+            document.getElementById('weightOutput').value = '';
+            return;
+        }
+        
         const from = document.getElementById('weightFrom').value;
         const to = document.getElementById('weightTo').value;
         
@@ -284,24 +278,14 @@ const app = {
         
         document.getElementById('weightOutput').value = this.formatDecimal(result);
         
-        // Update comparisons
         this.updateWeightComparisons(kg);
-        
-        // Save to history
-        this.addToHistory('weight', `${input} ${from} → ${this.formatDecimal(result)} ${to}`);
+        this.addToHistory('weight', `${this.formatNumber(input)} ${from} → ${this.formatDecimal(result)} ${to}`);
     },
 
     updateWeightComparisons: function(kg) {
-        // Apples (0.2kg)
-        document.getElementById('apples').textContent = this.formatNumber(kg / 0.2);
-        
-        // Olympic bar (20kg)
+        document.getElementById('apples').textContent = this.formatNumber(kg / 0.15);
         document.getElementById('olympicBar').textContent = (kg / 20).toFixed(1);
-        
-        // Elephant (5000kg)
         document.getElementById('elephants').textContent = (kg / 5000).toFixed(2);
-        
-        // Car (1500kg)
         document.getElementById('cars').textContent = (kg / 1500).toFixed(2);
     },
 
@@ -311,7 +295,7 @@ const app = {
         btn.innerHTML = '<i class="fas fa-spinner"></i>';
         
         try {
-            const res = await fetch(`${this.apiUrl}/${this.apiKey}/latest/USD`);
+            const res = await fetch(`${this.exchangeApiUrl}/${this.exchangeApiKey}/latest/USD`);
             const data = await res.json();
             
             if (data.result === 'success') {
@@ -319,7 +303,6 @@ const app = {
                 this.lastUpdate = new Date();
                 this.callsLeft = data.rate_limit?.remaining || 1499;
                 
-                // Cache
                 localStorage.setItem('proRates', JSON.stringify(this.rates));
                 localStorage.setItem('proRatesTime', Date.now().toString());
                 
@@ -337,7 +320,12 @@ const app = {
     },
 
     updateMoney: function() {
-        const input = parseFloat(document.getElementById('moneyInput').value) || 0;
+        const input = parseFloat(document.getElementById('moneyInput').value);
+        if (isNaN(input) || Object.keys(this.rates).length === 0) {
+            document.getElementById('moneyOutput').value = '';
+            return;
+        }
+        
         const from = document.getElementById('moneyFrom').value;
         const to = document.getElementById('moneyTo').value;
         
@@ -347,37 +335,11 @@ const app = {
             
             document.getElementById('moneyOutput').value = result.toFixed(4);
             
-            // Update rate display
             const rate = this.rates[to] / this.rates[from];
-            document.getElementById('exchangeRate').textContent = 
-                `1 ${from} = ${rate.toFixed(4)} ${to}`;
+            document.getElementById('exchangeRate').textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
             
-            // Update purchasing power
-            this.updatePurchasingPower(input, from, result, to);
-            
-            // Save to history
-            this.addToHistory('money', `${input} ${from} → ${result.toFixed(2)} ${to}`);
+            this.addToHistory('money', `${this.formatNumber(input)} ${from} → ${result.toFixed(2)} ${to}`);
         }
-    },
-
-    updatePurchasingPower: function(amount, from, result, to) {
-        const powerText = document.getElementById('powerText');
-        
-        // Common items in local currency
-        const items = {
-            USD: { coffee: 4.50, bread: 3.00, meal: 15.00 },
-            EUR: { coffee: 3.50, bread: 2.50, meal: 12.00 },
-            GBP: { coffee: 3.00, bread: 2.00, meal: 10.00 },
-            ZAR: { coffee: 35, bread: 18, meal: 120 }
-        };
-        
-        const fromItems = items[from] || items.USD;
-        const toItems = items[to] || items.USD;
-        
-        powerText.innerHTML = `
-            In ${from}: ${amount} buys ${(amount / fromItems.coffee).toFixed(1)} coffees<br>
-            In ${to}: ${result.toFixed(2)} buys ${(result / toItems.coffee).toFixed(1)} coffees
-        `;
     },
 
     updateMoneyUI: function() {
@@ -393,12 +355,17 @@ const app = {
 
     updatePopularRates: function() {
         const list = document.getElementById('popularList');
-        const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CNY', 'ZAR'];
+        const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'ZAR'];
         const from = document.getElementById('moneyFrom').value;
+        
+        if (Object.keys(this.rates).length === 0) {
+            list.innerHTML = '<div class="popular-item">Loading rates...</div>';
+            return;
+        }
         
         let html = '';
         popular.forEach(code => {
-            if (this.rates[from] && this.rates[code]) {
+            if (this.rates[from] && this.rates[code] && code !== from) {
                 const rate = this.rates[code] / this.rates[from];
                 html += `
                     <div class="popular-item" onclick="app.selectCurrency('${code}')">
@@ -454,29 +421,113 @@ const app = {
         this.updateWeight();
     },
 
+    // ===== WORLD TIME API =====
+    fetchLocalTime: async function() {
+        try {
+            const response = await fetch(`${this.worldTimeUrl}/ip`);
+            const data = await response.json();
+            
+            this.displayTime(data, 'currentTimeBox', 'localTime', 'localTimezone', 'localDst');
+            
+            // Add conversion hint
+            const localTimeDisplay = document.getElementById('localTime');
+            const localTimeValue = new Date(data.datetime);
+            const utcTime = new Date(data.utc_datetime);
+            const diffHours = (localTimeValue - utcTime) / 3600000;
+            
+            const hint = document.getElementById('conversionHint');
+            if (hint) {
+                hint.innerHTML = `UTC offset: ${diffHours >= 0 ? '+' : ''}${diffHours.toFixed(1)} hours`;
+            }
+            
+        } catch (err) {
+            console.error('Error fetching local time:', err);
+            document.getElementById('localTime').textContent = 'Unable to fetch';
+            document.getElementById('localTimezone').textContent = 'Check internet connection';
+        }
+    },
+
+    fetchTimezoneTime: async function(timezone) {
+        const tzPath = timezone.replace('/', '/');
+        try {
+            const response = await fetch(`${this.worldTimeUrl}/timezone/${tzPath}`);
+            const data = await response.json();
+            
+            this.displayTime(data, 'selectedTimeBox', 'selectedTime', 'selectedTimezone');
+            document.getElementById('selectedLocation').textContent = data.timezone.split('/').pop().replace('_', ' ');
+            document.getElementById('selectedTimeBox').style.display = 'block';
+            
+        } catch (err) {
+            this.showToast('Timezone not found', 'warning');
+        }
+    },
+
+    displayTime: function(data, boxId, timeId, tzId, dstId = null) {
+        const timeDisplay = document.getElementById(timeId);
+        const tzDisplay = document.getElementById(tzId);
+        
+        if (data.datetime) {
+            const date = new Date(data.datetime);
+            timeDisplay.textContent = date.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const dateStr = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            tzDisplay.textContent = `${data.timezone.split('/').pop().replace('_', ' ')} • ${dateStr}`;
+            
+            if (dstId && document.getElementById(dstId)) {
+                document.getElementById(dstId).textContent = data.dst ? '🕐 DST active' : '';
+            }
+        }
+    },
+
+    loadTimezones: async function() {
+        try {
+            const response = await fetch(`${this.worldTimeUrl}/timezone`);
+            this.timezones = await response.json();
+        } catch (err) {
+            console.error('Error loading timezones:', err);
+        }
+    },
+
+    searchTimezones: function(query) {
+        const suggestions = document.getElementById('suggestions');
+        if (!query || query.length < 2) {
+            suggestions.innerHTML = '';
+            return;
+        }
+        
+        const filtered = this.timezones.filter(tz => 
+            tz.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 8);
+        
+        if (filtered.length === 0) {
+            suggestions.innerHTML = '<div class="suggestion-item">No results</div>';
+            return;
+        }
+        
+        let html = '';
+        filtered.forEach(tz => {
+            const city = tz.split('/').pop().replace('_', ' ');
+            html += `<div class="suggestion-item" onclick="app.fetchTimezoneTime('${tz}')">${city} (${tz})</div>`;
+        });
+        
+        suggestions.innerHTML = html;
+    },
+
     // ===== PRESETS =====
     setupPresets: function() {
-        // Time presets
         document.querySelectorAll('[data-time]').forEach(btn => {
             btn.onclick = () => {
                 document.getElementById('timeInput').value = btn.dataset.time;
                 this.updateTime();
-            };
-        });
-        
-        // Length presets
-        document.querySelectorAll('[data-length]').forEach(btn => {
-            btn.onclick = () => {
-                document.getElementById('lengthInput').value = btn.dataset.length;
-                this.updateLength();
-            };
-        });
-        
-        // Weight presets
-        document.querySelectorAll('[data-weight]').forEach(btn => {
-            btn.onclick = () => {
-                document.getElementById('weightInput').value = btn.dataset.weight;
-                this.updateWeight();
             };
         });
     },
@@ -556,16 +607,17 @@ const app = {
 
     // ===== UI HELPERS =====
     formatNumber: function(n) {
-        if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
+        if (isNaN(n)) return '0';
         if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
         if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
         if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-        return Math.round(n).toString();
+        return n.toFixed(2).replace(/\.0+$/, '');
     },
 
     formatDecimal: function(n) {
-        if (n > 1e6 || n < 1e-6) return n.toExponential(4);
-        return n.toFixed(6);
+        if (isNaN(n)) return '';
+        if (n > 1e6 || (n < 1e-4 && n !== 0)) return n.toExponential(4);
+        return n.toFixed(6).replace(/\.?0+$/, '');
     },
 
     showToast: function(msg, type = 'success') {
@@ -580,8 +632,6 @@ const app = {
 
     showStatus: function(text) {
         document.getElementById('statusText').textContent = text;
-        document.getElementById('statusDot').style.background = 
-            text.includes('Live') ? 'var(--success)' : 'var(--warning)';
     }
 };
 
