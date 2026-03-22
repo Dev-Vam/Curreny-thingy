@@ -21,40 +21,41 @@
         </div>
         <div class="status-bar" id="statusBar">
             <span id="statusText">✅ Live rates</span>
-            <span id="rateInfo">1500 calls left</span>
+            <span id="rateInfo">Powered by WorldTimeAPI</span>
         </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs (scrollable) -->
     <div class="tabs">
         <button class="tab active" data-tab="time">⏱️ Time</button>
+        <button class="tab" data-tab="worldtime">🌍 World Time</button>
         <button class="tab" data-tab="money">💰 Money</button>
         <button class="tab" data-tab="length">📏 Length</button>
         <button class="tab" data-tab="weight">⚖️ Weight</button>
         <button class="tab" data-tab="history">📋 History</button>
     </div>
 
-    <!-- Time Tab -->
+    <!-- Time Converter Tab -->
     <div class="tab-content active" id="timeTab">
         <div class="card">
+            <div class="info-banner">
+                <i class="fas fa-info-circle"></i>
+                <span>Enter a value, select units, and see the conversion instantly</span>
+            </div>
+            
             <div class="input-row">
                 <div class="input-group">
                     <label>From</label>
                     <div class="input-box">
-                        <input type="number" id="timeInput" value="1">
+                        <input type="number" id="timeInput" value="1" placeholder="Enter value">
                         <select id="timeFrom">
-                            <option value="nanoseconds">Nanoseconds</option>
-                            <option value="microseconds">Microseconds</option>
-                            <option value="milliseconds">Milliseconds</option>
-                            <option value="seconds">Seconds</option>
-                            <option value="minutes">Minutes</option>
-                            <option value="hours" selected>Hours</option>
-                            <option value="days">Days</option>
-                            <option value="weeks">Weeks</option>
-                            <option value="months">Months</option>
-                            <option value="years">Years</option>
-                            <option value="decades">Decades</option>
-                            <option value="centuries">Centuries</option>
+                            <option value="seconds">Seconds (s)</option>
+                            <option value="minutes">Minutes (min)</option>
+                            <option value="hours" selected>Hours (h)</option>
+                            <option value="days">Days (d)</option>
+                            <option value="weeks">Weeks (wk)</option>
+                            <option value="months">Months (mo)</option>
+                            <option value="years">Years (yr)</option>
                         </select>
                     </div>
                 </div>
@@ -66,20 +67,15 @@
                 <div class="input-group">
                     <label>To</label>
                     <div class="input-box">
-                        <input type="number" id="timeOutput" readonly>
+                        <input type="number" id="timeOutput" readonly placeholder="Result">
                         <select id="timeTo">
-                            <option value="nanoseconds">Nanoseconds</option>
-                            <option value="microseconds">Microseconds</option>
-                            <option value="milliseconds">Milliseconds</option>
-                            <option value="seconds">Seconds</option>
-                            <option value="minutes" selected>Minutes</option>
-                            <option value="hours">Hours</option>
-                            <option value="days">Days</option>
-                            <option value="weeks">Weeks</option>
-                            <option value="months">Months</option>
-                            <option value="years">Years</option>
-                            <option value="decades">Decades</option>
-                            <option value="centuries">Centuries</option>
+                            <option value="seconds">Seconds (s)</option>
+                            <option value="minutes" selected>Minutes (min)</option>
+                            <option value="hours">Hours (h)</option>
+                            <option value="days">Days (d)</option>
+                            <option value="weeks">Weeks (wk)</option>
+                            <option value="months">Months (mo)</option>
+                            <option value="years">Years (yr)</option>
                         </select>
                     </div>
                 </div>
@@ -87,32 +83,25 @@
 
             <div class="quick-info">
                 <div class="info-item">
-                    <span class="info-label">⚡ CPU Cycles</span>
+                    <span class="info-label">⚡ CPU Cycles (3GHz)</span>
                     <span class="info-value" id="cpuCycles">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">❤️ Heartbeats</span>
+                    <span class="info-label">❤️ Heartbeats (72 BPM)</span>
                     <span class="info-value" id="heartbeats">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🎬 Movies</span>
+                    <span class="info-label">🎬 Movies (2hr)</span>
                     <span class="info-value" id="movies">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">📅 Lifespan</span>
+                    <span class="info-label">📅 Human Lifespan (79yr)</span>
                     <span class="info-value" id="lifespan">-</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">🌍 Earth rotations</span>
-                    <span class="info-value" id="earthRotations">-</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">☀️ Light seconds</span>
-                    <span class="info-value" id="lightSeconds">-</span>
                 </div>
             </div>
 
             <div class="presets">
+                <span class="preset-label">Quick presets:</span>
                 <button class="preset-btn" data-time="60">1 min</button>
                 <button class="preset-btn" data-time="3600">1 hour</button>
                 <button class="preset-btn" data-time="86400">1 day</button>
@@ -123,15 +112,83 @@
         </div>
     </div>
 
+    <!-- World Time Tab (NEW with API) -->
+    <div class="tab-content" id="worldtimeTab">
+        <div class="card">
+            <div class="info-banner">
+                <i class="fas fa-globe"></i>
+                <span>Real-time accurate time from WorldTimeAPI</span>
+            </div>
+            
+            <!-- Current location time -->
+            <div class="current-time-box" id="currentTimeBox">
+                <div class="location-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Your Location</span>
+                    <button class="refresh-location" id="refreshLocation">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="time-display" id="localTime">Loading...</div>
+                <div class="timezone-info" id="localTimezone">Detecting...</div>
+                <div class="dst-info" id="localDst"></div>
+            </div>
+
+            <!-- Timezone search -->
+            <div class="timezone-search">
+                <label>Search Timezone</label>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="timezoneSearch" placeholder="e.g., London, Tokyo, New York">
+                </div>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+
+            <!-- Selected timezone result -->
+            <div class="selected-time-box" id="selectedTimeBox" style="display: none;">
+                <div class="location-header">
+                    <i class="fas fa-clock"></i>
+                    <span id="selectedLocation">Selected Location</span>
+                    <button class="close-selected" id="closeSelected">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="time-display" id="selectedTime">--:--:--</div>
+                <div class="timezone-info" id="selectedTimezone">--</div>
+                <div class="conversion-hint" id="conversionHint"></div>
+            </div>
+
+            <!-- Popular timezones -->
+            <div class="popular-timezones">
+                <h4>🌍 Popular Cities</h4>
+                <div class="popular-grid">
+                    <button class="city-btn" data-tz="Europe/London">🇬🇧 London</button>
+                    <button class="city-btn" data-tz="America/New_York">🇺🇸 New York</button>
+                    <button class="city-btn" data-tz="Asia/Tokyo">🇯🇵 Tokyo</button>
+                    <button class="city-btn" data-tz="Australia/Sydney">🇦🇺 Sydney</button>
+                    <button class="city-btn" data-tz="Africa/Johannesburg">🇿🇦 Johannesburg</button>
+                    <button class="city-btn" data-tz="Europe/Paris">🇫🇷 Paris</button>
+                    <button class="city-btn" data-tz="Asia/Dubai">🇦🇪 Dubai</button>
+                    <button class="city-btn" data-tz="America/Los_Angeles">🇺🇸 Los Angeles</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Money Tab -->
     <div class="tab-content" id="moneyTab">
         <div class="card">
+            <div class="info-banner">
+                <i class="fas fa-chart-line"></i>
+                <span>Live exchange rates from ExchangeRate-API</span>
+            </div>
+            
             <div class="input-row">
                 <div class="input-group">
                     <label>From</label>
                     <div class="currency-box">
                         <span class="flag" id="fromFlag">🇺🇸</span>
-                        <input type="number" id="moneyInput" value="100">
+                        <input type="number" id="moneyInput" value="100" placeholder="Amount">
                         <select id="moneyFrom" class="currency-select">
                             <option value="USD">USD - US Dollar</option>
                             <option value="EUR">EUR - Euro</option>
@@ -142,22 +199,11 @@
                             <option value="CHF">CHF - Swiss Franc</option>
                             <option value="CNY">CNY - Chinese Yuan</option>
                             <option value="INR">INR - Indian Rupee</option>
-                            <option value="ZAR" selected>ZAR - South African Rand</option>
+                            <option value="ZAR">ZAR - South African Rand</option>
                             <option value="BRL">BRL - Brazilian Real</option>
                             <option value="MXN">MXN - Mexican Peso</option>
                             <option value="SGD">SGD - Singapore Dollar</option>
                             <option value="NZD">NZD - New Zealand Dollar</option>
-                            <option value="HKD">HKD - Hong Kong Dollar</option>
-                            <option value="SEK">SEK - Swedish Krona</option>
-                            <option value="NOK">NOK - Norwegian Krone</option>
-                            <option value="DKK">DKK - Danish Krone</option>
-                            <option value="PLN">PLN - Polish Złoty</option>
-                            <option value="TRY">TRY - Turkish Lira</option>
-                            <option value="RUB">RUB - Russian Ruble</option>
-                            <option value="KRW">KRW - South Korean Won</option>
-                            <option value="AED">AED - UAE Dirham</option>
-                            <option value="SAR">SAR - Saudi Riyal</option>
-                            <option value="THB">THB - Thai Baht</option>
                         </select>
                     </div>
                 </div>
@@ -169,8 +215,8 @@
                 <div class="input-group">
                     <label>To</label>
                     <div class="currency-box">
-                        <span class="flag" id="toFlag">🇿🇦</span>
-                        <input type="number" id="moneyOutput" readonly>
+                        <span class="flag" id="toFlag">🇪🇺</span>
+                        <input type="number" id="moneyOutput" readonly placeholder="Result">
                         <select id="moneyTo" class="currency-select">
                             <option value="USD">USD - US Dollar</option>
                             <option value="EUR" selected>EUR - Euro</option>
@@ -186,47 +232,27 @@
                             <option value="MXN">MXN - Mexican Peso</option>
                             <option value="SGD">SGD - Singapore Dollar</option>
                             <option value="NZD">NZD - New Zealand Dollar</option>
-                            <option value="HKD">HKD - Hong Kong Dollar</option>
-                            <option value="SEK">SEK - Swedish Krona</option>
-                            <option value="NOK">NOK - Norwegian Krone</option>
-                            <option value="DKK">DKK - Danish Krone</option>
-                            <option value="PLN">PLN - Polish Złoty</option>
-                            <option value="TRY">TRY - Turkish Lira</option>
-                            <option value="RUB">RUB - Russian Ruble</option>
-                            <option value="KRW">KRW - South Korean Won</option>
-                            <option value="AED">AED - UAE Dirham</option>
-                            <option value="SAR">SAR - Saudi Riyal</option>
-                            <option value="THB">THB - Thai Baht</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="rate-box">
-                <div class="rate" id="exchangeRate">1 ZAR = 0.051 EUR</div>
+                <div class="rate" id="exchangeRate">1 USD = 0.85 EUR</div>
                 <button class="refresh-btn" id="refreshRates">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
 
-            <div class="comparison-box" id="purchasingPower">
-                <h4>💰 Purchasing Power</h4>
-                <div class="comparison-text" id="powerText">Loading...</div>
-            </div>
-
-            <div class="popular-list" id="popularList">
-                <!-- Will be filled by JS -->
-            </div>
-
+            <div class="popular-list" id="popularList"></div>
+            
             <div class="favorites">
-                <h4>⭐ Favorite Pairs</h4>
-                <div class="favorite-buttons" id="favoritePairs">
+                <h4>⭐ Quick Pairs</h4>
+                <div class="favorite-buttons">
                     <button class="fav-btn" data-pair="USD,EUR">USD→EUR</button>
                     <button class="fav-btn" data-pair="EUR,GBP">EUR→GBP</button>
-                    <button class="fav-btn" data-pair="GBP,USD">GBP→USD</button>
                     <button class="fav-btn" data-pair="ZAR,USD">ZAR→USD</button>
                     <button class="fav-btn" data-pair="ZAR,EUR">ZAR→EUR</button>
-                    <button class="fav-btn" data-pair="ZAR,GBP">ZAR→GBP</button>
                 </div>
             </div>
         </div>
@@ -235,11 +261,16 @@
     <!-- Length Tab -->
     <div class="tab-content" id="lengthTab">
         <div class="card">
+            <div class="info-banner">
+                <i class="fas fa-ruler"></i>
+                <span>Convert between metric and imperial units</span>
+            </div>
+            
             <div class="input-row">
                 <div class="input-group">
                     <label>From</label>
                     <div class="input-box">
-                        <input type="number" id="lengthInput" value="1">
+                        <input type="number" id="lengthInput" value="1" placeholder="Enter value">
                         <select id="lengthFrom">
                             <option value="mm">Millimeters (mm)</option>
                             <option value="cm">Centimeters (cm)</option>
@@ -249,9 +280,6 @@
                             <option value="ft">Feet (ft)</option>
                             <option value="yd">Yards (yd)</option>
                             <option value="mi">Miles (mi)</option>
-                            <option value="nmi">Nautical miles</option>
-                            <option value="ly">Light years</option>
-                            <option value="au">Astronomical units</option>
                         </select>
                     </div>
                 </div>
@@ -263,7 +291,7 @@
                 <div class="input-group">
                     <label>To</label>
                     <div class="input-box">
-                        <input type="number" id="lengthOutput" readonly>
+                        <input type="number" id="lengthOutput" readonly placeholder="Result">
                         <select id="lengthTo">
                             <option value="mm">Millimeters (mm)</option>
                             <option value="cm">Centimeters (cm)</option>
@@ -273,9 +301,6 @@
                             <option value="ft" selected>Feet (ft)</option>
                             <option value="yd">Yards (yd)</option>
                             <option value="mi">Miles (mi)</option>
-                            <option value="nmi">Nautical miles</option>
-                            <option value="ly">Light years</option>
-                            <option value="au">Astronomical units</option>
                         </select>
                     </div>
                 </div>
@@ -283,30 +308,21 @@
 
             <div class="quick-info">
                 <div class="info-item">
-                    <span class="info-label">📏 Football fields</span>
+                    <span class="info-label">📏 Football Fields (100m)</span>
                     <span class="info-value" id="footballFields">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🗽 Empire State</span>
+                    <span class="info-label">🗽 Empire State (443m)</span>
                     <span class="info-value" id="empireState">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">✈️ 747 length</span>
+                    <span class="info-label">✈️ 747 Length (70m)</span>
                     <span class="info-value" id="planeLength">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🌍 Earth circum</span>
+                    <span class="info-label">🌍 Earth Circumference</span>
                     <span class="info-value" id="earthCirc">-</span>
                 </div>
-            </div>
-
-            <div class="presets">
-                <button class="preset-btn" data-length="0.0254">1 inch</button>
-                <button class="preset-btn" data-length="0.3048">1 foot</button>
-                <button class="preset-btn" data-length="0.9144">1 yard</button>
-                <button class="preset-btn" data-length="1609.34">1 mile</button>
-                <button class="preset-btn" data-length="1000">1 km</button>
-                <button class="preset-btn" data-length="384400000">Moon dist</button>
             </div>
         </div>
     </div>
@@ -314,23 +330,23 @@
     <!-- Weight Tab -->
     <div class="tab-content" id="weightTab">
         <div class="card">
+            <div class="info-banner">
+                <i class="fas fa-weight-scale"></i>
+                <span>Convert weight and mass units</span>
+            </div>
+            
             <div class="input-row">
                 <div class="input-group">
                     <label>From</label>
                     <div class="input-box">
-                        <input type="number" id="weightInput" value="1">
+                        <input type="number" id="weightInput" value="1" placeholder="Enter value">
                         <select id="weightFrom">
-                            <option value="mg">Milligrams (mg)</option>
                             <option value="g">Grams (g)</option>
                             <option value="kg" selected>Kilograms (kg)</option>
                             <option value="t">Metric tons (t)</option>
                             <option value="oz">Ounces (oz)</option>
                             <option value="lb">Pounds (lb)</option>
                             <option value="st">Stones (st)</option>
-                            <option value="lt">Long tons</option>
-                            <option value="ct">Carats (ct)</option>
-                            <option value="earth">Earth masses</option>
-                            <option value="sun">Solar masses</option>
                         </select>
                     </div>
                 </div>
@@ -342,19 +358,14 @@
                 <div class="input-group">
                     <label>To</label>
                     <div class="input-box">
-                        <input type="number" id="weightOutput" readonly>
+                        <input type="number" id="weightOutput" readonly placeholder="Result">
                         <select id="weightTo">
-                            <option value="mg">Milligrams (mg)</option>
                             <option value="g">Grams (g)</option>
                             <option value="kg">Kilograms (kg)</option>
                             <option value="t">Metric tons (t)</option>
                             <option value="oz">Ounces (oz)</option>
                             <option value="lb" selected>Pounds (lb)</option>
                             <option value="st">Stones (st)</option>
-                            <option value="lt">Long tons</option>
-                            <option value="ct">Carats (ct)</option>
-                            <option value="earth">Earth masses</option>
-                            <option value="sun">Solar masses</option>
                         </select>
                     </div>
                 </div>
@@ -362,30 +373,21 @@
 
             <div class="quick-info">
                 <div class="info-item">
-                    <span class="info-label">🍎 Apples</span>
+                    <span class="info-label">🍎 Apples (~150g each)</span>
                     <span class="info-value" id="apples">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🏋️ Olympic bar</span>
+                    <span class="info-label">🏋️ Olympic Bar (20kg)</span>
                     <span class="info-value" id="olympicBar">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🐘 Elephants</span>
+                    <span class="info-label">🐘 Elephant (5000kg)</span>
                     <span class="info-value" id="elephants">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">🚗 Cars</span>
+                    <span class="info-label">🚗 Car (1500kg)</span>
                     <span class="info-value" id="cars">-</span>
                 </div>
-            </div>
-
-            <div class="presets">
-                <button class="preset-btn" data-weight="0.02835">1 oz</button>
-                <button class="preset-btn" data-weight="0.4536">1 lb</button>
-                <button class="preset-btn" data-weight="6.35">1 stone</button>
-                <button class="preset-btn" data-weight="1000">1 ton</button>
-                <button class="preset-btn" data-weight="0.001">1 gram</button>
-                <button class="preset-btn" data-weight="70">Avg human</button>
             </div>
         </div>
     </div>
@@ -404,9 +406,7 @@
                     </button>
                 </div>
             </div>
-            <div class="history-stats" id="historyStats">
-                Total: 0 conversions
-            </div>
+            <div class="history-stats" id="historyStats">Total: 0 conversions</div>
             <div class="history-list" id="historyList">
                 <div class="empty-state">
                     <i class="fas fa-history"></i>
@@ -416,9 +416,9 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer with attribution (required for WorldTimeAPI) -->
     <div class="footer">
-        <span>⚡ Pro Converter • 25+ currencies • ZAR included</span>
+        <span>⚡ Pro Converter • <a href="https://time.now" target="_blank">World Time API by Time.Now</a></span>
     </div>
 
     <!-- Toast -->
