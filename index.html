@@ -5,27 +5,687 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>⚡ Pro Converter</title>
     
-    <!-- Simple icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        :root {
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #222222;
+            --text-light: #666666;
+            --border: #e0e0e0;
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --info-bg: #eef2ff;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+            --text-light: #aaaaaa;
+            --border: #333333;
+            --primary: #6366f1;
+            --info-bg: #1e293b;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+
+        .header {
+            background: var(--card);
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .header-content i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .header-content h1 {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+            background: var(--bg);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 88px;
+            z-index: 9;
+            gap: 4px;
+            padding: 0 8px;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            flex: 0 0 auto;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .info-banner {
+            background: var(--info-bg);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-light);
+        }
+
+        .input-box {
+            display: flex;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        .input-box:focus-within {
+            border-color: var(--primary);
+        }
+
+        .input-box input {
+            flex: 1;
+            padding: 14px 12px;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            outline: none;
+        }
+
+        .input-box select {
+            width: 110px;
+            padding: 0 8px;
+            border: none;
+            border-left: 2px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .currency-box {
+            display: flex;
+            align-items: center;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        .currency-box:focus-within {
+            border-color: var(--primary);
+        }
+
+        .flag {
+            font-size: 24px;
+            padding: 0 12px;
+            min-width: 52px;
+        }
+
+        .currency-box input {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            outline: none;
+        }
+
+        .currency-select {
+            width: 90px;
+            padding: 14px 8px;
+            border: none;
+            border-left: 2px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .swap-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 22px;
+            background: var(--primary);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 4px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .swap-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .info-item {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .info-label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .preset-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .preset-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .rate-box {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .rate {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .popular-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .popular-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .favorites {
+            margin-top: 16px;
+        }
+
+        .favorites h4 {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .favorite-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .fav-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .current-time-box, .selected-time-box {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .refresh-location, .close-selected {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        .time-display {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .timezone-info {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .dst-info {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .conversion-hint {
+            margin-top: 12px;
+            font-size: 12px;
+            opacity: 0.8;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 8px;
+        }
+
+        .timezone-search {
+            margin-bottom: 20px;
+        }
+
+        .timezone-search label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 0 12px;
+        }
+
+        .search-box i {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .suggestions {
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid var(--border);
+        }
+
+        .popular-timezones h4 {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .popular-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .city-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .history-header h3 {
+            font-size: 16px;
+        }
+
+        .export-btn, .clear-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .history-stats {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item i {
+            width: 32px;
+            height: 32px;
+            background: var(--bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .history-item .conversion {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .history-item .time {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .footer {
+            padding: 16px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            background: var(--card);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-left: 4px solid var(--success);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideUp 0.3s;
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        button {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        input, select {
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-content">
             <i class="fas fa-exchange-alt"></i>
             <h1>Pro Converter</h1>
             <button class="theme-btn" id="themeToggle">🌙</button>
         </div>
-        <div class="status-bar" id="statusBar">
+        <div class="status-bar">
             <span id="statusText">✅ Live rates</span>
             <span id="rateInfo">Powered by WorldTimeAPI</span>
         </div>
     </div>
 
-    <!-- Tabs (scrollable) -->
     <div class="tabs">
         <button class="tab active" data-tab="time">⏱️ Time</button>
         <button class="tab" data-tab="worldtime">🌍 World Time</button>
@@ -35,7 +695,7 @@
         <button class="tab" data-tab="history">📋 History</button>
     </div>
 
-    <!-- Time Converter Tab -->
+    <!-- Time Tab -->
     <div class="tab-content active" id="timeTab">
         <div class="card">
             <div class="info-banner">
@@ -112,7 +772,7 @@
         </div>
     </div>
 
-    <!-- World Time Tab (NEW with API) -->
+    <!-- World Time Tab -->
     <div class="tab-content" id="worldtimeTab">
         <div class="card">
             <div class="info-banner">
@@ -120,7 +780,6 @@
                 <span>Real-time accurate time from WorldTimeAPI</span>
             </div>
             
-            <!-- Current location time -->
             <div class="current-time-box" id="currentTimeBox">
                 <div class="location-header">
                     <i class="fas fa-map-marker-alt"></i>
@@ -132,9 +791,9 @@
                 <div class="time-display" id="localTime">Loading...</div>
                 <div class="timezone-info" id="localTimezone">Detecting...</div>
                 <div class="dst-info" id="localDst"></div>
+                <div class="conversion-hint" id="localHint"></div>
             </div>
 
-            <!-- Timezone search -->
             <div class="timezone-search">
                 <label>Search Timezone</label>
                 <div class="search-box">
@@ -144,7 +803,6 @@
                 <div class="suggestions" id="suggestions"></div>
             </div>
 
-            <!-- Selected timezone result -->
             <div class="selected-time-box" id="selectedTimeBox" style="display: none;">
                 <div class="location-header">
                     <i class="fas fa-clock"></i>
@@ -155,10 +813,9 @@
                 </div>
                 <div class="time-display" id="selectedTime">--:--:--</div>
                 <div class="timezone-info" id="selectedTimezone">--</div>
-                <div class="conversion-hint" id="conversionHint"></div>
+                <div class="conversion-hint" id="selectedHint"></div>
             </div>
 
-            <!-- Popular timezones -->
             <div class="popular-timezones">
                 <h4>🌍 Popular Cities</h4>
                 <div class="popular-grid">
@@ -199,7 +856,7 @@
                             <option value="CHF">CHF - Swiss Franc</option>
                             <option value="CNY">CNY - Chinese Yuan</option>
                             <option value="INR">INR - Indian Rupee</option>
-                            <option value="ZAR">ZAR - South African Rand</option>
+                            <option value="ZAR" selected>ZAR - South African Rand</option>
                             <option value="BRL">BRL - Brazilian Real</option>
                             <option value="MXN">MXN - Mexican Peso</option>
                             <option value="SGD">SGD - Singapore Dollar</option>
@@ -416,14 +1073,512 @@
         </div>
     </div>
 
-    <!-- Footer with attribution (required for WorldTimeAPI) -->
     <div class="footer">
         <span>⚡ Pro Converter • <a href="https://time.now" target="_blank">World Time API by Time.Now</a></span>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
-    <script src="app.js"></script>
+    <script>
+        // ===== PRO CONVERTER - COMPLETE WORKING VERSION =====
+        
+        // App state
+        const appState = {
+            exchangeApiKey: '38b44d9fd2765204c0abd06e',
+            exchangeApiUrl: 'https://v6.exchangerate-api.com/v6',
+            worldTimeUrl: 'https://time.now/developer/api',
+            
+            timeUnits: {
+                seconds: 1, minutes: 60, hours: 3600, days: 86400,
+                weeks: 604800, months: 2629746, years: 31556952
+            },
+            
+            lengthUnits: {
+                mm: 0.001, cm: 0.01, m: 1, km: 1000,
+                in: 0.0254, ft: 0.3048, yd: 0.9144, mi: 1609.344
+            },
+            
+            weightUnits: {
+                g: 0.001, kg: 1, t: 1000,
+                oz: 0.0283495, lb: 0.453592, st: 6.35029
+            },
+            
+            currencies: {
+                USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵',
+                CAD: '🇨🇦', AUD: '🇦🇺', CHF: '🇨🇭', CNY: '🇨🇳',
+                INR: '🇮🇳', ZAR: '🇿🇦', BRL: '🇧🇷', MXN: '🇲🇽',
+                SGD: '🇸🇬', NZD: '🇳🇿'
+            },
+            
+            rates: {},
+            history: [],
+            timezones: []
+        };
+
+        // Helper functions
+        function formatNumber(n) {
+            if (isNaN(n)) return '0';
+            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return n.toFixed(2).replace(/\.0+$/, '');
+        }
+
+        function formatDecimal(n) {
+            if (isNaN(n)) return '';
+            if (n > 1e6 || (n < 1e-4 && n !== 0)) return n.toExponential(4);
+            return n.toFixed(6).replace(/\.?0+$/, '');
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Time conversion
+        function updateTime() {
+            const input = parseFloat(document.getElementById('timeInput').value);
+            if (isNaN(input)) {
+                document.getElementById('timeOutput').value = '';
+                return;
+            }
+            const from = document.getElementById('timeFrom').value;
+            const to = document.getElementById('timeTo').value;
+            const seconds = input * appState.timeUnits[from];
+            const result = seconds / appState.timeUnits[to];
+            document.getElementById('timeOutput').value = formatDecimal(result);
+            
+            // Update comparisons
+            const cpuCycles = seconds * 3e9;
+            document.getElementById('cpuCycles').textContent = formatNumber(cpuCycles);
+            const heartbeats = seconds * 72 / 60;
+            document.getElementById('heartbeats').textContent = formatNumber(heartbeats);
+            const movies = seconds / 7200;
+            document.getElementById('movies').textContent = movies.toFixed(2);
+            const lifespanPercent = (seconds / 2491344000) * 100;
+            document.getElementById('lifespan').textContent = lifespanPercent.toFixed(6) + '%';
+            
+            // Add to history
+            appState.history.unshift({
+                type: 'time',
+                text: `${formatNumber(input)} ${from} → ${formatDecimal(result)} ${to}`,
+                time: new Date().toLocaleTimeString()
+            });
+            if (appState.history.length > 30) appState.history.pop();
+            updateHistory();
+        }
+
+        // Length conversion
+        function updateLength() {
+            const input = parseFloat(document.getElementById('lengthInput').value);
+            if (isNaN(input)) {
+                document.getElementById('lengthOutput').value = '';
+                return;
+            }
+            const from = document.getElementById('lengthFrom').value;
+            const to = document.getElementById('lengthTo').value;
+            const meters = input * appState.lengthUnits[from];
+            const result = meters / appState.lengthUnits[to];
+            document.getElementById('lengthOutput').value = formatDecimal(result);
+            
+            document.getElementById('footballFields').textContent = (meters / 100).toFixed(2);
+            document.getElementById('empireState').textContent = (meters / 443).toFixed(2);
+            document.getElementById('planeLength').textContent = (meters / 70).toFixed(2);
+            document.getElementById('earthCirc').textContent = ((meters / 40075000) * 100).toFixed(6) + '%';
+            
+            appState.history.unshift({
+                type: 'length',
+                text: `${formatNumber(input)} ${from} → ${formatDecimal(result)} ${to}`,
+                time: new Date().toLocaleTimeString()
+            });
+            if (appState.history.length > 30) appState.history.pop();
+            updateHistory();
+        }
+
+        // Weight conversion
+        function updateWeight() {
+            const input = parseFloat(document.getElementById('weightInput').value);
+            if (isNaN(input)) {
+                document.getElementById('weightOutput').value = '';
+                return;
+            }
+            const from = document.getElementById('weightFrom').value;
+            const to = document.getElementById('weightTo').value;
+            const kg = input * appState.weightUnits[from];
+            const result = kg / appState.weightUnits[to];
+            document.getElementById('weightOutput').value = formatDecimal(result);
+            
+            document.getElementById('apples').textContent = formatNumber(kg / 0.15);
+            document.getElementById('olympicBar').textContent = (kg / 20).toFixed(1);
+            document.getElementById('elephants').textContent = (kg / 5000).toFixed(2);
+            document.getElementById('cars').textContent = (kg / 1500).toFixed(2);
+            
+            appState.history.unshift({
+                type: 'weight',
+                text: `${formatNumber(input)} ${from} → ${formatDecimal(result)} ${to}`,
+                time: new Date().toLocaleTimeString()
+            });
+            if (appState.history.length > 30) appState.history.pop();
+            updateHistory();
+        }
+
+        // Money conversion
+        async function fetchRates() {
+            const btn = document.getElementById('refreshRates');
+            btn.innerHTML = '<i class="fas fa-spinner"></i>';
+            try {
+                const res = await fetch(`${appState.exchangeApiUrl}/${appState.exchangeApiKey}/latest/USD`);
+                const data = await res.json();
+                if (data.result === 'success') {
+                    appState.rates = data.conversion_rates;
+                    updateMoney();
+                    showToast('Rates updated!');
+                    document.getElementById('statusText').textContent = '✅ Live rates';
+                }
+            } catch (err) {
+                showToast('Using cached rates', 'warning');
+                document.getElementById('statusText').textContent = '⚠️ Offline mode';
+            }
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        }
+
+        function updateMoney() {
+            const input = parseFloat(document.getElementById('moneyInput').value);
+            if (isNaN(input) || Object.keys(appState.rates).length === 0) {
+                document.getElementById('moneyOutput').value = '';
+                return;
+            }
+            const from = document.getElementById('moneyFrom').value;
+            const to = document.getElementById('moneyTo').value;
+            if (appState.rates[from] && appState.rates[to]) {
+                const inUSD = input / appState.rates[from];
+                const result = inUSD * appState.rates[to];
+                document.getElementById('moneyOutput').value = result.toFixed(4);
+                const rate = appState.rates[to] / appState.rates[from];
+                document.getElementById('exchangeRate').textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
+                
+                // Update popular list
+                const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'ZAR'];
+                let html = '';
+                popular.forEach(code => {
+                    if (appState.rates[from] && appState.rates[code] && code !== from) {
+                        const r = appState.rates[code] / appState.rates[from];
+                        html += `<div class="popular-item" onclick="selectCurrency('${code}')">
+                            <span class="flag">${appState.currencies[code] || '🏳️'}</span>
+                            <span class="code">${code}</span>
+                            <span class="value">${r.toFixed(4)}</span>
+                        </div>`;
+                    }
+                });
+                document.getElementById('popularList').innerHTML = html;
+                
+                appState.history.unshift({
+                    type: 'money',
+                    text: `${formatNumber(input)} ${from} → ${result.toFixed(2)} ${to}`,
+                    time: new Date().toLocaleTimeString()
+                });
+                if (appState.history.length > 30) appState.history.pop();
+                updateHistory();
+            }
+        }
+
+        function updateMoneyUI() {
+            const from = document.getElementById('moneyFrom').value;
+            const to = document.getElementById('moneyTo').value;
+            document.getElementById('fromFlag').textContent = appState.currencies[from] || '🏳️';
+            document.getElementById('toFlag').textContent = appState.currencies[to] || '🏳️';
+            updateMoney();
+        }
+
+        function selectCurrency(code) {
+            document.getElementById('moneyTo').value = code;
+            updateMoneyUI();
+        }
+
+        // World Time functions
+        async function fetchLocalTime() {
+            const timeDisplay = document.getElementById('localTime');
+            const tzDisplay = document.getElementById('localTimezone');
+            const dstDisplay = document.getElementById('localDst');
+            const hintDisplay = document.getElementById('localHint');
+            
+            timeDisplay.innerHTML = '<i class="fas fa-spinner"></i> Loading...';
+            
+            try {
+                const response = await fetch(`${appState.worldTimeUrl}/ip`);
+                const data = await response.json();
+                
+                if (data.datetime) {
+                    const localDate = new Date(data.datetime);
+                    timeDisplay.innerHTML = `
+                        <div style="font-size: 42px; font-weight: 700;">${localDate.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+                        <div style="font-size: 16px; margin-top: 4px;">${localDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    `;
+                    const cityName = data.timezone ? data.timezone.split('/').pop().replace(/_/g, ' ') : 'Unknown';
+                    tzDisplay.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${cityName}<br><span style="font-size: 12px;">${data.timezone || 'Unknown'}</span>`;
+                    dstDisplay.innerHTML = data.dst ? '<i class="fas fa-sun"></i> Daylight Saving Time active' : '<i class="fas fa-moon"></i> Standard time';
+                    hintDisplay.innerHTML = `UTC ${data.utc_offset || '?'}`;
+                }
+            } catch (err) {
+                timeDisplay.innerHTML = '⚠️ Unable to fetch';
+                tzDisplay.innerHTML = 'Check internet connection';
+            }
+        }
+
+        async function fetchTimezoneTime(timezone) {
+            const selectedBox = document.getElementById('selectedTimeBox');
+            const timeDisplay = document.getElementById('selectedTime');
+            const tzDisplay = document.getElementById('selectedTimezone');
+            const locationSpan = document.getElementById('selectedLocation');
+            const hintDisplay = document.getElementById('selectedHint');
+            
+            selectedBox.style.display = 'block';
+            timeDisplay.innerHTML = '<i class="fas fa-spinner"></i> Loading...';
+            
+            try {
+                const response = await fetch(`${appState.worldTimeUrl}/timezone/${timezone}`);
+                const data = await response.json();
+                
+                if (data.datetime) {
+                    const localDate = new Date(data.datetime);
+                    timeDisplay.innerHTML = `
+                        <div style="font-size: 36px; font-weight: 700;">${localDate.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+                        <div style="font-size: 14px; margin-top: 4px;">${localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    `;
+                    const cityName = data.timezone.split('/').pop().replace(/_/g, ' ');
+                    locationSpan.textContent = cityName;
+                    tzDisplay.innerHTML = `<i class="fas fa-globe"></i> ${data.timezone}<br><span style="font-size: 12px;">UTC ${data.utc_offset || '?'}</span>`;
+                    hintDisplay.innerHTML = `UTC ${data.utc_offset || '?'}`;
+                }
+            } catch (err) {
+                timeDisplay.innerHTML = '⚠️ Timezone not found';
+                tzDisplay.innerHTML = 'Try another city';
+            }
+        }
+
+        function searchTimezones(query) {
+            const suggestions = document.getElementById('suggestions');
+            if (!query || query.length < 2) {
+                suggestions.innerHTML = '';
+                return;
+            }
+            const filtered = appState.timezones.filter(tz => tz.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
+            if (filtered.length === 0) {
+                suggestions.innerHTML = '<div class="suggestion-item">No results</div>';
+                return;
+            }
+            let html = '';
+            filtered.forEach(tz => {
+                const city = tz.split('/').pop().replace(/_/g, ' ');
+                const region = tz.split('/')[0];
+                html += `<div class="suggestion-item" onclick="fetchTimezoneTime('${tz}')"><strong>${city}</strong><br><small>${region}</small></div>`;
+            });
+            suggestions.innerHTML = html;
+        }
+
+        async function loadTimezones() {
+            try {
+                const response = await fetch(`${appState.worldTimeUrl}/timezone`);
+                if (response.ok) {
+                    appState.timezones = await response.json();
+                } else {
+                    appState.timezones = ['Europe/London', 'America/New_York', 'Asia/Tokyo', 'Australia/Sydney', 'Africa/Johannesburg', 'Europe/Paris'];
+                }
+            } catch (err) {
+                appState.timezones = ['Europe/London', 'America/New_York', 'Asia/Tokyo', 'Australia/Sydney', 'Africa/Johannesburg', 'Europe/Paris'];
+            }
+        }
+
+        // History functions
+        function updateHistory() {
+            const list = document.getElementById('historyList');
+            const stats = document.getElementById('historyStats');
+            stats.textContent = `Total: ${appState.history.length} conversions`;
+            
+            if (appState.history.length === 0) {
+                list.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>No conversions yet</p></div>`;
+                return;
+            }
+            
+            let html = '';
+            appState.history.forEach(item => {
+                const icon = { time: 'fa-clock', money: 'fa-coins', length: 'fa-ruler', weight: 'fa-weight-scale' }[item.type] || 'fa-exchange-alt';
+                html += `<div class="history-item"><i class="fas ${icon}"></i><div class="conversion">${item.text}</div><div class="time">${item.time}</div></div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function clearHistory() {
+            appState.history = [];
+            updateHistory();
+            showToast('History cleared');
+        }
+
+        function exportHistory() {
+            const data = JSON.stringify(appState.history, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `converter-history-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('History exported');
+        }
+
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabId);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabId + 'Tab');
+            });
+            if (tabId === 'worldtime') fetchLocalTime();
+        }
+
+        // Theme
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Swap functions
+        function swapTime() {
+            const from = document.getElementById('timeFrom');
+            const to = document.getElementById('timeTo');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            updateTime();
+        }
+
+        function swapMoney() {
+            const from = document.getElementById('moneyFrom');
+            const to = document.getElementById('moneyTo');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            updateMoneyUI();
+        }
+
+        function swapLength() {
+            const from = document.getElementById('lengthFrom');
+            const to = document.getElementById('lengthTo');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            updateLength();
+        }
+
+        function swapWeight() {
+            const from = document.getElementById('weightFrom');
+            const to = document.getElementById('weightTo');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            updateWeight();
+        }
+
+        // Presets
+        function setupPresets() {
+            document.querySelectorAll('[data-time]').forEach(btn => {
+                btn.onclick = () => {
+                    document.getElementById('timeInput').value = btn.dataset.time;
+                    updateTime();
+                };
+            });
+        }
+
+        // Initialize
+        function init() {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Load saved history
+            const savedHistory = localStorage.getItem('proHistory');
+            if (savedHistory) {
+                appState.history = JSON.parse(savedHistory);
+                updateHistory();
+            }
+            
+            // Set up event listeners
+            document.getElementById('timeInput').addEventListener('input', updateTime);
+            document.getElementById('timeFrom').addEventListener('change', updateTime);
+            document.getElementById('timeTo').addEventListener('change', updateTime);
+            document.getElementById('timeSwap').addEventListener('click', swapTime);
+            
+            document.getElementById('lengthInput').addEventListener('input', updateLength);
+            document.getElementById('lengthFrom').addEventListener('change', updateLength);
+            document.getElementById('lengthTo').addEventListener('change', updateLength);
+            document.getElementById('lengthSwap').addEventListener('click', swapLength);
+            
+            document.getElementById('weightInput').addEventListener('input', updateWeight);
+            document.getElementById('weightFrom').addEventListener('change', updateWeight);
+            document.getElementById('weightTo').addEventListener('change', updateWeight);
+            document.getElementById('weightSwap').addEventListener('click', swapWeight);
+            
+            document.getElementById('moneyInput').addEventListener('input', updateMoney);
+            document.getElementById('moneyFrom').addEventListener('change', updateMoneyUI);
+            document.getElementById('moneyTo').addEventListener('change', updateMoneyUI);
+            document.getElementById('moneySwap').addEventListener('click', swapMoney);
+            document.getElementById('refreshRates').addEventListener('click', fetchRates);
+            
+            document.getElementById('clearHistory').addEventListener('click', clearHistory);
+            document.getElementById('exportHistory').addEventListener('click', exportHistory);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            document.getElementById('refreshLocation').addEventListener('click', fetchLocalTime);
+            document.getElementById('closeSelected').addEventListener('click', () => {
+                document.getElementById('selectedTimeBox').style.display = 'none';
+            });
+            document.getElementById('timezoneSearch').addEventListener('input', (e) => searchTimezones(e.target.value));
+            
+            document.querySelectorAll('.city-btn').forEach(btn => {
+                btn.addEventListener('click', () => fetchTimezoneTime(btn.dataset.tz));
+            });
+            
+            document.querySelectorAll('.fav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const [from, to] = btn.dataset.pair.split(',');
+                    document.getElementById('moneyFrom').value = from;
+                    document.getElementById('moneyTo').value = to;
+                    updateMoneyUI();
+                });
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            
+            // Initialize data
+            updateTime();
+            updateLength();
+            updateWeight();
+            fetchRates();
+            fetchLocalTime();
+            loadTimezones();
+            setupPresets();
+            
+            // Auto-save history
+            setInterval(() => {
+                localStorage.setItem('proHistory', JSON.stringify(appState.history));
+            }, 5000);
+        }
+
+        // Make functions globally available
+        window.fetchTimezoneTime = fetchTimezoneTime;
+        window.selectCurrency = selectCurrency;
+        
+        // Start app
+        init();
+    </script>
 </body>
 </html>
